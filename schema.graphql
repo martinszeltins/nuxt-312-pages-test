@@ -1,0 +1,1595 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  myProfileGet: User
+  permissionList(set: PermissionSet!): [Permission!]!
+  classifierList(productUuid: ID!): [ClassifierType!]!
+  userGet(uuid: ID!): User!
+  userList(offset: Int, limit: Int): PaginatedData
+  officeGet(uuid: ID!): Office!
+  officeList(offset: Int, limit: Int): PaginatedData
+
+  "Search globally in multiple entities across the app"
+  globalSearchGet(searchTerm: String!): GlobalSearchResults
+
+  jobGet(uuid: ID!): Job!
+  jobList(offset: Int, limit: Int, orderBy: [JobSortItem!], filter: JobFilter): PaginatedData
+  shippingProfileGet(uuid: ID!): ShippingProfile
+
+  "Lists ShippingProfiles of the current User, its Organizations and serviced Organizations or ShippingProfiles of the specified Organization if organizationUuid is provided"
+  shippingProfileList(
+    "Filter by Organization"
+    organizationUuid: ID
+
+    offset: Int
+    limit: Int
+    orderBy: [ShippingProfileSortItem!]
+  ): PaginatedData
+
+  organizationUserGet(uuid: ID!): OrganizationUser
+  organizationUserList(organizationUuid: ID!, offset: Int, limit: Int): PaginatedData
+  userGroupGet(uuid: ID!): UserGroup
+  userGroupList(organizationUuid: ID, offset: Int, limit: Int): PaginatedData
+  shipmentCollectionGet(uuid: ID!): ShipmentCollection
+  shipmentCollectionList(offset: Int, limit: Int, orderBy: [ShipmentCollectionSortItem!], filter: ShipmentCollectionFilter): PaginatedData
+
+  "Get list of Printers for the currently logged in User"
+  printerList(offset: Int, limit: Int): PaginatedData
+
+  printerGet(uuid: ID!): Printer!
+  serviceList(shipmentUuid: ID!, productUuid: ID!, offset: Int, limit: Int): PaginatedData
+  invitationGet(uuid: ID!): Invitation
+  invitationList(organizationUuid: ID, offset: Int, limit: Int): PaginatedData
+  shipmentGet(uuid: ID!): Shipment
+  shipmentList(offset: Int, limit: Int, orderBy: [ShipmentSortItem!], filter: ShipmentFilter): PaginatedData
+
+  "Validate Shipment before requesting a shipping label"
+  shipmentValidationGet(uuid: ID!): Boolean!
+
+  organizationGet(uuid: ID!): Organization!
+  organizationList(isPublic: Boolean, offset: Int, limit: Int, orderBy: [OrganizationSortItem!], filter: OrganizationFilter): PaginatedData
+  productList(shipmentUuid: ID!, offset: Int, limit: Int): PaginatedData
+  reportSwissPostPveDataList(organization: ID, dateFrom: DateTime, dateTo: DateTime, offset: Int, limit: Int): PaginatedData
+
+  "Get list of ApiKeys"
+  apiKeyList(offset: Int, limit: Int): PaginatedData
+
+  apiKeyGet(uuid: ID!): ApiKey!
+}
+
+type User {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  "Holds resulting global Permissions of the User"
+  resultingPermissions: [Permission!]!
+
+  "Holds system-specific roles, eg. ROLE_ADMIN, ROLE_SUPERADMIN etc."
+  roles: [String]
+
+  email: String
+  userGroups: [UserGroup!]!
+
+  "Enum representation of the locale attribute"
+  locale: Locale
+
+  printers: [Printer]
+
+  "Print configuration for documents"
+  documentPrintConfiguration: PrintConfiguration
+
+  "Print configuration for outbound shipping labels"
+  outboundLabelPrintConfiguration: PrintConfiguration
+
+  "Print configuration for return shipping labels"
+  returnLabelPrintConfiguration: PrintConfiguration
+
+  documentPrinter: Printer
+  outboundLabelPrinter: Printer
+  returnLabelPrinter: Printer
+
+  "UPU specific settings"
+  upuSettings: UpuSettings
+
+  office: Office
+  uuid: ID!
+  title: String
+  salutation: String
+  firstName: String
+  lastName: String
+  defaultPrinter: Printer
+
+  "Returns all extra Permissions for the User"
+  permissions: [Permission!]!
+
+  "String representation of the locale attribute"
+  localeString: String
+
+  organization: Organization
+}
+
+scalar DateTime
+
+enum Permission {
+  GLOBAL_OFFICE_CREATE
+  GLOBAL_OFFICE_READ
+  GLOBAL_OFFICE_UPDATE
+  GLOBAL_OFFICE_DELETE
+  GLOBAL_SHIPPING_PROFILE_CREATE
+  GLOBAL_SHIPPING_PROFILE_READ
+  GLOBAL_SHIPPING_PROFILE_UPDATE
+  GLOBAL_SHIPPING_PROFILE_DELETE
+  GLOBAL_SHIPMENT_CREATE
+  GLOBAL_SHIPMENT_READ
+  GLOBAL_SHIPMENT_UPDATE
+  GLOBAL_SHIPMENT_DELETE
+  GLOBAL_SHIPMENT_ACCEPT
+  GLOBAL_SHIPMENT_REJECT
+  GLOBAL_SHIPMENT_COLLECTION_CREATE
+  GLOBAL_SHIPMENT_COLLECTION_READ
+  GLOBAL_SHIPMENT_COLLECTION_UPDATE
+  GLOBAL_SHIPMENT_COLLECTION_DELETE
+  GLOBAL_USER_CREATE
+  GLOBAL_USER_READ
+  GLOBAL_USER_UPDATE
+  GLOBAL_USER_DELETE
+  GLOBAL_USER_GROUP_CREATE
+  GLOBAL_USER_GROUP_READ
+  GLOBAL_USER_GROUP_UPDATE
+  GLOBAL_USER_GROUP_DELETE
+  GLOBAL_INVITATION_CREATE
+  GLOBAL_INVITATION_READ
+  GLOBAL_INVITATION_UPDATE
+  GLOBAL_INVITATION_DELETE
+  GLOBAL_ORGANIZATION_CREATE
+  GLOBAL_ORGANIZATION_READ
+  GLOBAL_ORGANIZATION_UPDATE
+  GLOBAL_ORGANIZATION_DELETE
+  GLOBAL_JOB_CREATE
+  GLOBAL_JOB_READ
+  GLOBAL_JOB_DELETE
+  ORGANIZATION_READ
+  ORGANIZATION_UPDATE
+  ORGANIZATION_SHIPMENT_CREATE
+  ORGANIZATION_SHIPMENT_READ
+  ORGANIZATION_SHIPMENT_UPDATE
+  ORGANIZATION_SHIPMENT_DELETE
+  ORGANIZATION_SHIPMENT_ACCEPT
+  ORGANIZATION_SHIPMENT_REJECT
+  ORGANIZATION_SHIPMENT_COLLECTION_CREATE
+  ORGANIZATION_SHIPMENT_COLLECTION_READ
+  ORGANIZATION_SHIPMENT_COLLECTION_UPDATE
+  ORGANIZATION_SHIPMENT_COLLECTION_DELETE
+  ORGANIZATION_USER_CREATE
+  ORGANIZATION_USER_READ
+  ORGANIZATION_USER_UPDATE
+  ORGANIZATION_USER_DELETE
+  ORGANIZATION_INVITATION_CREATE
+  ORGANIZATION_INVITATION_READ
+  ORGANIZATION_INVITATION_UPDATE
+  ORGANIZATION_INVITATION_DELETE
+  ORGANIZATION_USER_GROUP_CREATE
+  ORGANIZATION_USER_GROUP_READ
+  ORGANIZATION_USER_GROUP_UPDATE
+  ORGANIZATION_USER_GROUP_DELETE
+  ORGANIZATION_SHIPPING_PROFILE_CREATE
+  ORGANIZATION_SHIPPING_PROFILE_READ
+  ORGANIZATION_SHIPPING_PROFILE_UPDATE
+  ORGANIZATION_SHIPPING_PROFILE_DELETE
+  ORGANIZATION_JOB_CREATE
+  ORGANIZATION_JOB_READ
+  ORGANIZATION_JOB_DELETE
+  ORGANIZATION_REPORT_READ
+}
+
+type UserGroup {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  name: String
+  organization: Organization
+  organizationUsers: [OrganizationUser!]!
+  users: [User!]!
+  allowAllShippingProfiles: Boolean!
+
+  "Returns all Shipping Profiles that are allowed for the User Group"
+  allowedShippingProfiles: [ShippingProfile!]!
+
+  uuid: ID!
+
+  "Returns all Permissions for the User Group"
+  permissions: [Permission!]!
+}
+
+type Organization {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  "Resulting Permissions that the currently logged in User has in this Organization."
+  resultingUserPermissions: [Permission!]!
+
+  isPublic: Boolean!
+  accountNumber: String
+  legalEntity: LegalEntity
+  billingAddress: Address
+  billingType: BillingType
+  userGroups: [UserGroup]
+  organizationUsers: [OrganizationUser]
+
+  "Organizations that provide services to and are allowed to manage shipments of this Organization."
+  serviceOrganizations: [Organization!]!
+
+  "Organizations that are serviced by this Organization."
+  servicedOrganizations: [Organization!]!
+
+  uuid: ID!
+  externalId: String
+}
+
+type LegalEntity {
+  title: String
+  salutation: String
+  firstName: String
+  lastName: String
+  email: String
+  companyName: String
+  registrationNumber: String
+  phoneCountry: String
+  phoneNumber: String
+  vatIdType: VatIdType
+  vatId: String
+  contactEmail: String
+  billingEmail: String
+}
+
+enum VatIdType {
+  AE_TRN
+  AU_ABN
+  AU_ARN
+  BR_CNPJ
+  BR_CPF
+  CA_BN
+  CA_GST_HST
+  CA_PST_BC
+  CA_PST_MB
+  CA_PST_SK
+  CA_QST
+  CH_VAT
+  CL_TIN
+  ES_CIF
+  EU_VAT
+  GE_VAT
+  GB_VAT
+  HK_BR
+  ID_NPWP
+  IL_VAT
+  IN_GST
+  JP_CN
+  JP_RN
+  KR_BRN
+  LI_UID
+  MX_RFC
+  MY_FRP
+  MY_ITN
+  MY_SST
+  NO_VAT
+  NZ_GST
+  RU_INN
+  RU_KPP
+  SA_VAT
+  SG_GST
+  SG_UEN
+  TH_VAT
+  TW_VAT
+  US_EIN
+  ZA_VAT
+}
+
+type Address {
+  street: String
+  houseNumber: String
+  state: String
+  postalCode: String
+  city: String
+  country: String
+}
+
+enum BillingType {
+  "The Customer will be billed by issuing an invoice"
+  INVOICE
+
+  "The Customer will be billed at the parcel shop upon sending the parcel"
+  PREPAID
+}
+
+type OrganizationUser {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  isEnabled: Boolean!
+  organization: Organization
+  user: User
+  userGroups: [UserGroup!]!
+  uuid: ID!
+}
+
+type ShippingProfile {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  name: String
+  organization: Organization
+  address: Address!
+  legalEntity: LegalEntity!
+
+  "Returns all User Groups that are allowed to use this Shipping Profile"
+  allowedUserGroups: [UserGroup!]!
+
+  uuid: ID!
+
+  "Reference number of the entity users can use to refer to it (eg., from the import files)"
+  reference: String
+}
+
+enum Locale {
+  EN
+  DE_LI
+}
+
+type Printer {
+  "The name of the printer in Operating System or QZ Tray"
+  identifier: String!
+
+  "User given name of the printer"
+  name: String!
+
+  isDefault: Boolean!
+  uuid: ID!
+}
+
+type PrintConfiguration {
+  pageOrientation: PageOrientation
+  labelFormat: LabelFormat
+}
+
+enum PageOrientation {
+  PORTRAIT
+  LANDSCAPE
+}
+
+enum LabelFormat {
+  PDF
+  ZPL
+}
+
+type UpuSettings {
+  "UPU office identifier"
+  postOfficeCode: String
+}
+
+type Office {
+  name: String
+  address: Address!
+
+  "UPU specific settings"
+  upuSettings: UpuSettings
+
+  uuid: ID!
+}
+
+enum PermissionSet {
+  GLOBAL
+  ORGANIZATION
+  API_KEY
+}
+
+type ClassifierType {
+  identifier: Int!
+  name: String
+  uuid: ID!
+  data: [ClassifierValueType!]
+}
+
+type ClassifierValueType {
+  classifierId: Int!
+  classifierName: String
+  valueId: Int!
+  valueName: String
+}
+
+type PaginatedData {
+  totalCount: Int!
+  data: [Page]!
+}
+
+union Page = Shipment | ShipmentCollection | ShippingProfile | Product | Service | Organization | Office | Invitation | OrganizationUser | User | UserGroup | Printer | ApiKey | Job | ReportSwissPostPveDataEntry
+
+type Shipment {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  "Resulting Permissions that the currently logged in User has in the Organization to which the Shipment belongs."
+  resultingUserPermissions: [Permission!]!
+
+  "Provides information if various logical sections of the Shipment are valid or not"
+  validation: ShipmentValidation
+
+  status: ShipmentStatus!
+  shipmentType: ShipmentType!
+  shippingProfile: ShippingProfile
+  senderAddress: Address
+  senderLegalEntity: LegalEntity
+  receiverAddress: Address
+  receiverLegalEntity: LegalEntity
+
+  "Holds the Product price as it was upon the selection"
+  productBilling: Billing
+
+  "Holds the sum of applied Services as it was upon the selection"
+  serviceBilling: Billing
+
+  shippingFee: Float
+  customsInformation: CustomsInformation
+
+  "Shipment reference number provided by the client"
+  shipmentReferenceNumber: String
+
+  "Parcel reference number provided by the client"
+  parcelReferenceNumber: String
+
+  "Total weight of the shipment in grams"
+  weight: Int
+
+  "Length of the shipment in millimeters"
+  length: Int
+
+  "Width of the shipment in millimeters"
+  width: Int
+
+  "Height of the shipment in millimeters"
+  height: Int
+
+  shipmentItems: [ShipmentItem]
+  product: Product
+  trackingNumber: String
+
+  "Carrier reference number (provided by the carrier API or carrier module, if local number range is used)"
+  carrierReferenceNumber: String
+
+  trackingUrl: String
+  outboundLabelFormat: LabelFormat
+  outboundLabelUrl: String
+  returnLabelFormat: LabelFormat
+  returnLabelUrl: String
+  commercialInvoiceFormat: LabelFormat
+  commercialInvoiceUrl: String
+  organization: Organization
+  shipmentCollection: ShipmentCollection
+  allowAcceptReject: Boolean!
+  isAccepted: Boolean
+  acceptedAt: DateTime
+  registeredAt: DateTime
+  rejectedAt: DateTime
+  shipmentServices: [ShipmentService!]!
+  uuid: ID!
+  classifiers: [ClassifierValueType!]
+  isCustomsInformationRequired: Boolean
+  files: [File!]
+}
+
+type ShipmentValidation {
+  "Are all fields filled out correctly and Shipment is ready for finalization?"
+  finalization: Boolean!
+
+  "Are Sender & Receiver information blocks filled and valid?"
+  senderReceiver: Boolean!
+
+  "Is Shipment information filled and valid?"
+  shipmentData: Boolean!
+
+  "Is Customs Information filled and valid?"
+  customsInformation: Boolean!
+
+  "Is Products and Services Information filled and valid?"
+  productsAndServices: Boolean!
+}
+
+enum ShipmentStatus {
+  "Shipment is in draft state"
+  DRAFT
+
+  "Shipment labels have been generated"
+  GENERATED
+
+  "Shipment labels have been printed"
+  PRINTED
+
+  "Drop-off point has accepted the Shipment"
+  ACCEPTED
+
+  "Drop-off point has rejected the Shipment"
+  REJECTED
+}
+
+enum ShipmentType {
+  "Parcel"
+  PARCEL
+
+  "Goods letter \/ official letter"
+  LETTER
+}
+
+type Billing {
+  priceNet: Float
+  priceGross: Float
+  vatRate: String
+  currency: String
+  vatAmount: Float
+  billedAt: DateTime
+}
+
+type CustomsInformation {
+  itemCategory: CustomsItemCategory
+  invoiceNumber: String
+}
+
+enum CustomsItemCategory {
+  "The Items are documents"
+  DOCUMENTS
+
+  "The Items are merchandise"
+  MERCHANDISE
+
+  "The Items are a gift"
+  GIFT
+
+  "The Items are sample goods"
+  SAMPLES
+
+  "The Items are returned goods"
+  RETURNED_GOODS
+
+  "The Items are something else"
+  OTHER
+}
+
+type ShipmentItem {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  description: String
+  hsCode: String
+  quantity: Int
+  value: Float
+
+  "Net weight of the item in grams."
+  netWeight: Int
+
+  originCountry: String
+  shipment: Shipment
+  uuid: ID!
+}
+
+type Product {
+  category: String
+  productServicePrice: ProductServicePrice
+  geographicalZoneCountry: GeographicalZoneCountry
+  classifiers: [ClassifierType]
+  name: String
+  uuid: ID!
+  externalId: String
+
+  "Reference number of the entity users can use to refer to it (eg., from the import files)"
+  reference: String
+}
+
+type ProductServicePrice {
+  zone: String
+  country: String
+  uuid: ID!
+  priceNet: Float
+  priceGross: Float
+  vatRate: String
+  currency: String
+  classifiers: [ClassifierValueType!]
+  externalId: String
+}
+
+type GeographicalZoneCountry {
+  weightMax: Int
+  dimensions: String
+  transitTimeMin: Int
+  transitTimeMax: Int
+  uuid: ID!
+}
+
+type ShipmentCollection {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  identifier: String!
+  qrCodeUrl: String!
+  organization: Organization
+  billing: Billing
+  name: String
+  shipments: [Shipment]
+  uuid: ID!
+}
+
+type ShipmentService {
+  type: ShipmentServiceType!
+  shipment: Shipment!
+  service: Service!
+  uuid: ID!
+  priceNet: Float
+  priceGross: Float
+  vatRate: String
+  currency: String
+}
+
+enum ShipmentServiceType {
+  INCLUDED
+  EXTRA
+}
+
+type Service {
+  isIncludedInProduct: Boolean!
+  productServicePrice: ProductServicePrice
+  geographicalZoneCountry: GeographicalZoneCountry
+  classifiers: [ClassifierType]
+  name: String
+  uuid: ID!
+  externalId: String
+
+  "Reference number of the entity users can use to refer to it (eg., from the import files)"
+  reference: String
+
+  price: Float
+}
+
+type File {
+  uuid: ID!
+  group: String
+  filename: String
+  mimeType: String
+  url: String
+}
+
+type Invitation {
+  "The creation date of the object"
+  createdAt: DateTime!
+
+  "The update date of the object"
+  updatedAt: DateTime
+
+  message: String
+  invitedAt: DateTime
+  acceptedAt: DateTime
+  expiresAt: DateTime!
+  organization: Organization
+  office: Office
+  user: User
+  locale: Locale
+  userGroups: [UserGroup!]!
+  uuid: ID!
+  title: String
+  salutation: String
+  firstName: String
+  lastName: String
+  email: String
+}
+
+type ApiKey {
+  apiKey: String!
+  apiSecret: String
+  uuid: ID!
+}
+
+type Job {
+  type: JobType!
+  status: JobStatus!
+  progressTotal: Int
+  progressCurrent: Int
+  errors: [Json!]
+  organization: Organization
+  startedAt: DateTime
+  finishedAt: DateTime
+  uuid: ID!
+  progressPercentage: Int
+  createdAt: DateTime
+  files: [File!]
+}
+
+enum JobType {
+  SHIPMENT_IMPORT
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  FINISHED
+  FAILED
+}
+
+scalar Json
+
+type ReportSwissPostPveDataEntry {
+  identifier: String!
+  transactionDate: DateTime!
+  data: Json
+  accountNumber: String!
+  uuid: ID!
+}
+
+type GlobalSearchResults {
+  organizations: [Organization!]!
+  shipments: [Shipment!]!
+  users: [User!]!
+}
+
+"""
+Job sort configuration object.
+            
+"""
+input JobSortItem {
+  field: JobSortField
+  direction: SortDirection
+}
+
+"""
+Set of supported Job sort fields.
+            
+"""
+enum JobSortField {
+  "Job creation date"
+  createdAt
+
+  "Job start date"
+  startedAt
+
+  "Job finish date"
+  finishedAt
+}
+
+"""
+Set of supported sort directions.
+            
+"""
+enum SortDirection {
+  "Ascending"
+  asc
+
+  "Descending"
+  desc
+}
+
+"""
+`Job` filter object.
+            
+"""
+input JobFilter {
+  "System generated `UUID` of the entity"
+  uuid: [[ComparisonString!]]
+  status: [[ComparisonJobStatus!]]
+  type: [[ComparisonJobType!]]
+}
+
+"""
+Input object for comparing `string` fields
+            
+"""
+input ComparisonString {
+  operator: ComparisonOperatorString
+  value: [String!]
+}
+
+"""
+Set of supported comparison operators for `string` filters
+            
+"""
+enum ComparisonOperatorString {
+  "Equals"
+  eq
+
+  "Is not equal"
+  neq
+
+  "Contains"
+  in
+
+  "Is `NULL`"
+  isNull
+
+  "Is not `NULL`"
+  isNotNull
+}
+
+"""
+Input object for comparing `JobStatus` fields
+            
+"""
+input ComparisonJobStatus {
+  operator: ComparisonOperatorString
+  value: [JobStatus!]
+}
+
+"""
+Input object for comparing `JobType` fields
+            
+"""
+input ComparisonJobType {
+  operator: ComparisonOperatorString
+  value: [JobType!]
+}
+
+"""
+ShippingProfile sort configuration object.
+            
+"""
+input ShippingProfileSortItem {
+  field: ShippingProfileSortField
+  direction: SortDirection
+}
+
+"""
+Set of supported ShippingProfile sort fields.
+            
+"""
+enum ShippingProfileSortField {
+  "ShippingProfile name"
+  name
+
+  "ShippingProfile creation date"
+  createdAt
+
+  "ShippingProfile update date"
+  updatedAt
+}
+
+"""
+Shipment Collection sort configuration object.
+            
+"""
+input ShipmentCollectionSortItem {
+  field: ShipmentCollectionSortField
+  direction: SortDirection
+}
+
+"""
+Set of supported Shipment Collection sort fields.
+            
+"""
+enum ShipmentCollectionSortField {
+  "Shipment Collection creation date"
+  createdAt
+
+  "Shipment Collection update date"
+  updatedAt
+}
+
+"""
+`Shipment Collection` filter object.
+            
+"""
+input ShipmentCollectionFilter {
+  "System generated `UUID` of the entity"
+  uuid: [[ComparisonString!]]
+
+  "Unique identifier of the entity"
+  identifier: [[ComparisonString!]]
+
+  "Will filter `ShipmentCollection` where `Organization` attributes meet the specified conditions"
+  organization: OrganizationFilter
+
+  "Will filter `ShipmentCollection` where `Shipment` attributes meet the specified conditions"
+  shipments: ShipmentFilter
+  createdAt: [[ComparisonDateTime!]]
+  updatedAt: [[ComparisonDateTime!]]
+}
+
+"""
+`Organization` filter object.
+            
+"""
+input OrganizationFilter {
+  "System generated `UUID` of the entity"
+  uuid: [[ComparisonString!]]
+
+  "LegalEntity of the Organization"
+  legalEntity: LegalEntityFilter
+  createdAt: [[ComparisonDateTime!]]
+  updatedAt: [[ComparisonDateTime!]]
+}
+
+"""
+`LegalEntity` filter object.
+            
+"""
+input LegalEntityFilter {
+  "Company name of the legal entity"
+  companyName: [[ComparisonStringExtended!]]
+}
+
+"""
+Input object for extended comparing of `string` fields
+            
+"""
+input ComparisonStringExtended {
+  operator: ComparisonOperatorStringExtended
+  value: [String!]
+}
+
+"""
+Set of supported extended comparison operators for `string` filters
+            
+"""
+enum ComparisonOperatorStringExtended {
+  "Equals"
+  eq
+
+  "Is not equal"
+  neq
+
+  "Contains"
+  in
+
+  "Is `NULL`"
+  isNull
+
+  "Is not `NULL`"
+  isNotNull
+
+  """
+  Contains. Examples: &percnt;abc, abc&percnt;, &percnt;abc&percnt;
+                      
+  """
+  like
+}
+
+"""
+Input object for comparing `datetime` fields
+            
+"""
+input ComparisonDateTime {
+  operator: ComparisonOperatorNumeric
+  value: DateTime
+}
+
+"""
+Set of supported comparison operators for `numeric` filters
+            
+"""
+enum ComparisonOperatorNumeric {
+  "Equals"
+  eq
+
+  "Is not equal"
+  neq
+
+  "Less than"
+  lt
+
+  "Less than or equal"
+  lte
+
+  "Greater than"
+  gt
+
+  "Greater than or equal"
+  gte
+
+  "Contains (matches one of the specified elements in the array)"
+  in
+
+  "Is `NULL`"
+  isNull
+
+  "Is not `NULL`"
+  isNotNull
+}
+
+"""
+`Shipment` filter object.
+            
+"""
+input ShipmentFilter {
+  "Search term"
+  searchTerm: [[ComparisonString!]]
+
+  "Shipment reference number"
+  shipmentReferenceNumber: [[ComparisonString!]]
+
+  "Tracking number"
+  trackingNumber: [[ComparisonString!]]
+  createdAt: [[ComparisonDateTime!]]
+  updatedAt: [[ComparisonDateTime!]]
+
+  "ShippingProfile of the Shipment"
+  shippingProfile: ShippingProfileFilter
+
+  "Organization of the Shipment"
+  organization: OrganizationFilter
+
+  "Status of the Shipment"
+  status: [[ComparisonString!]]
+}
+
+"""
+`ShippingProfile` filter object.
+            
+"""
+input ShippingProfileFilter {
+  "System generated `UUID` of the entity"
+  uuid: [[ComparisonString!]]
+  createdAt: [[ComparisonDateTime!]]
+  updatedAt: [[ComparisonDateTime!]]
+}
+
+"""
+Shipment sort configuration object.
+            
+"""
+input ShipmentSortItem {
+  field: ShipmentSortField
+  direction: SortDirection
+}
+
+"""
+Set of supported Shipment sort fields.
+            
+"""
+enum ShipmentSortField {
+  "Shipment creation date"
+  createdAt
+
+  "Shipment update date"
+  updatedAt
+}
+
+"""
+Organization sort configuration object.
+            
+"""
+input OrganizationSortItem {
+  field: OrganizationSortField
+  direction: SortDirection
+}
+
+"""
+Set of supported Organization sort fields.
+            
+"""
+enum OrganizationSortField {
+  "Organization creation date"
+  createdAt
+
+  "Organization update date"
+  updatedAt
+}
+
+type Mutation {
+  "Update User"
+  userUpdate(uuid: ID!, userUpdateInput: UserUpdateInput!): User!
+
+  "Create a new Office"
+  officeCreate(officeCreateInput: OfficeCreateInput!): Office!
+
+  "Update Office"
+  officeUpdate(uuid: ID!, officeUpdateInput: OfficeUpdateInput!): Office!
+
+  "Delete Office"
+  officeDelete(uuid: ID!): Boolean!
+
+  "Register a new User"
+  authRegister(userRegisterInput: UserRegisterInput!): User!
+
+  "Login a User"
+  authLogin(email: String!, password: String!): String!
+
+  "Initiate a password reset process"
+  authResetPasswordRequest(email: String!): Boolean!
+
+  "Reset the password of the User"
+  authResetPassword(userPasswordResetInput: UserPasswordResetInput!): Boolean!
+
+  "Create a new Shipment Import job"
+  jobShipmentImportCreate(shipmentImportCreateInput: JobShipmentImportCreateInput!): Job!
+
+  jobRetry(uuid: ID!): Boolean!
+
+  "Delete a Job"
+  jobDelete(uuid: ID!): Boolean!
+
+  "Create a new ShippingProfile"
+  shippingProfileCreate(shippingProfileCreateInput: ShippingProfileCreateInput!): ShippingProfile!
+
+  "Update Shipment"
+  shippingProfileUpdate(uuid: ID!, shippingProfileUpdateInput: ShippingProfileUpdateInput!): ShippingProfile!
+
+  "Update Organization User"
+  organizationUserUpdate(uuid: ID!, organizationUserUpdateInput: OrganizationUserUpdateInput!): OrganizationUser!
+
+  "Delete Organization User"
+  organizationUserDelete(uuid: ID!): Boolean!
+
+  "Create a new UserGroup"
+  userGroupCreate(userGroupCreateInput: UserGroupCreateInput!): UserGroup!
+
+  "Update UserGroup"
+  userGroupUpdate(uuid: ID!, userGroupUpdateInput: UserGroupUpdateInput!): UserGroup!
+
+  "Delete UserGroup"
+  userGroupDelete(uuid: ID!): Boolean!
+
+  "Create a new Shipment Collection"
+  shipmentCollectionCreate(shipmentCollectionCreateInput: ShipmentCollectionCreateInput!): ShipmentCollection!
+
+  "Update Shipment Collection"
+  shipmentCollectionUpdate(uuid: ID!, shipmentCollectionUpdateInput: ShipmentCollectionUpdateInput!): ShipmentCollection!
+
+  "Delete Shipment Collection"
+  shipmentCollectionDelete(uuid: ID!): Boolean!
+
+  "Create a new Printer"
+  printerCreate(printerCreateInput: PrinterCreateInput!): Printer!
+
+  "Update Printer"
+  printerUpdate(uuid: ID!, printerUpdateInput: PrinterUpdateInput!): Printer!
+
+  "Delete Printer"
+  printerDelete(uuid: ID!): Boolean!
+
+  "Invite someone to the platform"
+  invitationCreate(invitationCreateInput: InvitationCreateInput!): Invitation
+
+  "Update Invitation"
+  invitationUpdate(uuid: ID!, invitationUpdateInput: InvitationUpdateInput!): Invitation!
+
+  "Resend Invitation"
+  invitationResend(uuid: ID!): Boolean!
+
+  "Delete Invitation"
+  invitationDelete(uuid: ID!): Boolean!
+
+  "Create a new Shipment"
+  shipmentCreate(
+    shipmentCreateInput: ShipmentCreateInput!
+
+    "Validates Shipment against the specified validation group"
+    shipmentValidationGroup: ShipmentValidationGroup
+  ): Shipment!
+
+  "Update Shipment"
+  shipmentUpdate(
+    uuid: ID!
+    shipmentUpdateInput: ShipmentUpdateInput!
+
+    "Validates Shipment against the specified validation group"
+    shipmentValidationGroup: ShipmentValidationGroup
+  ): Shipment!
+
+  shipmentFilesCreate(
+    "Shipment UUID"
+    uuid: ID!
+
+    files: [FileCreateInput!]!
+  ): Shipment!
+  shipmentFilesDelete(
+    "Shipment UUID"
+    uuid: ID!
+
+    files: [FileDeleteInput!]!
+  ): Shipment!
+
+  "Generate Shipment labels"
+  shipmentGenerateLabels(uuid: ID!): Shipment!
+
+  "Mark Shipment as labels printed"
+  shipmentMarkAsPrinted(uuid: ID!): Shipment!
+
+  "Create a duplicate of the Shipment"
+  shipmentDuplicate(uuid: ID!): Shipment!
+
+  "Accept Shipment at the pickup location"
+  shipmentAccept(uuid: ID!): Shipment!
+
+  "Reject Shipment at the pickup location"
+  shipmentReject(uuid: ID!): Shipment!
+
+  "Delete Shipment"
+  shipmentDelete(uuid: ID!): Boolean!
+
+  "Create a new Organization"
+  organizationCreate(organizationCreateInput: OrganizationCreateInput!): Organization!
+
+  "Update Organization"
+  organizationUpdate(uuid: ID!, organizationUpdateInput: OrganizationUpdateInput!): Organization!
+
+  "Create a new ApiKey"
+  apiKeyCreate: ApiKey!
+
+  "Delete Printer"
+  apiKeyDelete(uuid: ID!): Boolean!
+}
+
+input UserUpdateInput {
+  email: String
+  firstName: String
+  lastName: String
+  password: String
+  passwordRepeat: String
+  permissions: [Permission]
+  roles: [String]
+  officeUuid: ID
+
+  "Print configuration for documents"
+  documentPrintConfiguration: PrintConfigurationInput
+
+  "Print configuration for outbound shipping labels"
+  outboundLabelPrintConfiguration: PrintConfigurationInput
+
+  "Print configuration for return shipping labels"
+  returnLabelPrintConfiguration: PrintConfigurationInput
+
+  "UUID of the document Printer"
+  documentPrinterUuid: ID
+
+  "UUID of the outbound shipping label Printer"
+  outboundLabelPrinterUuid: ID
+
+  "UUID of the return shipping label Printer"
+  returnLabelPrinterUuid: ID
+
+  "UPU specific settings"
+  upuSettings: UpuSettingsInput
+  locale: Locale
+}
+
+input PrintConfigurationInput {
+  pageOrientation: PageOrientation
+  labelFormat: LabelFormat
+}
+
+input UpuSettingsInput {
+  "UPU post office identifier"
+  postOfficeCode: String!
+}
+
+input OfficeCreateInput {
+  name: String
+  address: AddressInput
+
+  "UPU specific settings"
+  upuSettings: UpuSettingsInput
+}
+
+input AddressInput {
+  street: String
+  houseNumber: String
+  state: String
+  postalCode: String
+  city: String
+  country: String
+}
+
+input OfficeUpdateInput {
+  name: String
+  address: AddressInput
+
+  "UPU specific settings"
+  upuSettings: UpuSettingsInput
+}
+
+input UserRegisterInput {
+  email: String!
+  firstName: String
+  lastName: String
+  password: String!
+  passwordRepeat: String!
+  invitationUuid: String
+}
+
+input UserPasswordResetInput {
+  token: String!
+  password: String!
+  passwordRepeat: String!
+}
+
+input JobShipmentImportCreateInput {
+  "The file to import"
+  file: FileCreateInput!
+
+  "UUID of the Organization to which the Job should be assigned"
+  organizationUuid: ID
+}
+
+input FileCreateInput {
+  filename: String!
+  mimeType: String
+  content: String!
+}
+
+input ShippingProfileCreateInput {
+  organizationUuid: ID
+  name: String
+  address: AddressInput
+  legalEntity: LegalEntityInput
+}
+
+input LegalEntityInput {
+  title: String
+  salutation: String
+  firstName: String
+  lastName: String
+  email: String
+  companyName: String
+  registrationNumber: String
+  phoneCountry: String
+  phoneNumber: String
+  vatIdType: VatIdType
+  vatId: String
+  contactEmail: String
+  billingEmail: String
+}
+
+input ShippingProfileUpdateInput {
+  name: String
+  address: AddressInput
+  legalEntity: LegalEntityInput
+}
+
+input OrganizationUserUpdateInput {
+  isEnabled: Boolean
+
+  "Array of UUIDs of the user groups to which the user should be added"
+  userGroupUuids: [ID!]
+}
+
+input UserGroupCreateInput {
+  name: String!
+
+  "UUID of the Organization under which the user group should be created"
+  organizationUuid: ID
+
+  "Array of Permissions that the UserGroup has"
+  permissions: [Permission!]
+
+  "Whether the UserGroup is allowed to access all ShippingProfiles"
+  allowAllShippingProfiles: Boolean
+
+  "Array of UUIDs of the ShippingProfiles that the UserGroup is allowed to access"
+  allowedShippingProfileUuids: [ID!]
+}
+
+input UserGroupUpdateInput {
+  name: String
+
+  "Array of Permissions that the UserGroup has"
+  permissions: [Permission!]
+
+  "Whether the UserGroup is allowed to access all ShippingProfiles"
+  allowAllShippingProfiles: Boolean
+
+  "Array of UUIDs of the ShippingProfiles that the UserGroup is allowed to access"
+  allowedShippingProfileUuids: [ID!]
+}
+
+input ShipmentCollectionCreateInput {
+  name: String
+}
+
+input ShipmentCollectionUpdateInput {
+  name: String
+}
+
+input PrinterCreateInput {
+  identifier: String!
+  name: String!
+  isDefault: Boolean
+}
+
+input PrinterUpdateInput {
+  name: String
+  isDefault: Boolean
+}
+
+input InvitationCreateInput {
+  "UUID of the Organization to which the User should be added"
+  organizationUuid: ID
+  email: String!
+
+  "Array of UUIDs of the user groups to which the user should be added"
+  userGroupUuids: [ID!]
+
+  "UUID of the Office to which the User should be assigned"
+  officeUuid: ID
+  message: String
+  firstName: String
+  lastName: String
+}
+
+input InvitationUpdateInput {
+  "Array of UUIDs of the user groups to which the user should be added"
+  userGroupUuids: [ID!]
+
+  "UUID of the Office to which the User should be assigned"
+  officeUuid: ID
+  message: String
+  firstName: String
+  lastName: String
+}
+
+input ShipmentCreateInput {
+  shipmentType: ShipmentType
+
+  "UUID of the ShippingProfile which should be used with the Shipment."
+  shippingProfileUuid: ID
+
+  "UUID of the ShipmentCollection to which the Shipment should be added."
+  shipmentCollectionUuid: ID
+  shipmentReferenceNumber: String
+  parcelReferenceNumber: String
+
+  "Weight of the Shipment in grams"
+  weight: Int
+
+  "Length of the Shipment in millimeters"
+  length: Int
+
+  "Width of the Shipment in millimeters"
+  width: Int
+
+  "Height of the Shipment in millimeters"
+  height: Int
+  senderAddress: AddressInput
+  senderLegalEntity: LegalEntityInput
+  receiverAddress: AddressInput
+  receiverLegalEntity: LegalEntityInput
+  customsInformation: CustomsInformationInput
+  shipmentItems: [ShipmentItemInput!]
+
+  "UUID of the Product which should be used with the Shipment."
+  productUuid: ID
+
+  "UUIDs of the ShipmentServices which should be used with the Shipment."
+  shipmentServiceUuids: [ID!]
+
+  "Product classifier data to determine the resulting Product price"
+  classifierData: [ClassifierValueInput!]
+}
+
+input CustomsInformationInput {
+  itemCategory: CustomsItemCategory
+  invoiceNumber: String
+}
+
+input ShipmentItemInput {
+  uuid: ID
+  description: String!
+  hsCode: String
+  quantity: Int!
+  value: Float
+
+  "Net weight of the item in grams"
+  netWeight: Float
+  originCountry: String
+  delete: Boolean
+}
+
+input ClassifierValueInput {
+  classifierId: Int!
+  valueId: Int!
+}
+
+enum ShipmentValidationGroup {
+  "Validate whole Shipment before issuing shipping request to the carrier"
+  VALIDATION_GROUP_FINALIZATION
+
+  "Validate Sender and Receiver data"
+  VALIDATION_GROUP_SENDER_RECEIVER
+
+  "Validate Sender data"
+  VALIDATION_GROUP_SENDER
+
+  "Validate Receiver data"
+  VALIDATION_GROUP_RECEIVER
+
+  "Validate Shipment data"
+  VALIDATION_GROUP_SHIPMENT_DATA
+
+  "Validate Customs Information"
+  VALIDATION_GROUP_CUSTOMS_INFORMATION
+
+  "Validate Products and Services"
+  VALIDATION_GROUP_PRODUCTS_AND_SERVICES
+}
+
+input ShipmentUpdateInput {
+  shipmentType: ShipmentType
+
+  "UUID of the ShippingProfile which should be used with the Shipment."
+  shippingProfileUuid: ID
+
+  "UUID of the ShipmentCollection to which the Shipment should be added."
+  shipmentCollectionUuid: ID
+  shipmentReferenceNumber: String
+  parcelReferenceNumber: String
+
+  "Weight of the Shipment in grams"
+  weight: Int
+
+  "Length of the Shipment in millimeters"
+  length: Int
+
+  "Width of the Shipment in millimeters"
+  width: Int
+
+  "Height of the Shipment in millimeters"
+  height: Int
+  senderAddress: AddressInput
+  senderLegalEntity: LegalEntityInput
+  receiverAddress: AddressInput
+  receiverLegalEntity: LegalEntityInput
+  customsInformation: CustomsInformationInput
+  shipmentItems: [ShipmentItemInput!]
+
+  "UUID of the Product which should be used with the Shipment."
+  productUuid: ID
+
+  "UUIDs of the ShipmentServices which should be used with the Shipment."
+  shipmentServiceUuids: [ID!]
+
+  "Product classifier data to determine the resulting Product price"
+  classifierData: [ClassifierValueInput!]
+}
+
+input FileDeleteInput {
+  uuid: ID!
+}
+
+input OrganizationCreateInput {
+  externalId: String
+  accountNumber: String!
+  legalEntity: LegalEntityInput!
+  billingAddress: AddressInput!
+  billingType: BillingType!
+  isPublic: Boolean
+  serviceOrganizationUuids: [ID!]
+}
+
+input OrganizationUpdateInput {
+  externalId: String
+  accountNumber: String
+  legalEntity: LegalEntityInput
+  billingAddress: AddressInput
+  billingType: BillingType
+  isPublic: Boolean
+  serviceOrganizationUuids: [ID!]
+}
