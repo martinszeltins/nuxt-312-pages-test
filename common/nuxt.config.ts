@@ -5,6 +5,12 @@ export default defineNuxtConfig({
         '@nuxtjs/i18n',
     ],
 
+    routeRules: {
+        '/': {
+            redirect: { to: '/settings/account', statusCode: 302 }
+        }
+    },
+
     experimental: {
         typedPages: true,
         scanPageMeta: true,
